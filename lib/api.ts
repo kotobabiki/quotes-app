@@ -1,5 +1,5 @@
 // lib/api.ts
-const BASE = process.env.NEXT_PUBLIC_API_URL!;
+const BASE = "/api/quotes";
 const KEY  = process.env.NEXT_PUBLIC_API_KEY!;
 
 // fetch の Promise を受け取り、中で await して共通処理
