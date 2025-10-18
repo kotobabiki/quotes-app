@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 
 
 'use client';
@@ -16,8 +17,9 @@ export default function RecentPage() {
 
   async function load() {
     setLoading(true);
-    const res = (await listRecent(50)) as { ok: boolean; data: Quote[] };
-    setItems(res.data as Quote[]);
+    const res = await listRecent<Quote[]>(50);
+    setItems(res.data);
+
     setLoading(false);
   }
   

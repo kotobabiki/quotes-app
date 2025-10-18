@@ -13,9 +13,11 @@ type Quote = {
   likes: number;
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
-  const res = (await listRecent(20)) as { ok: boolean; data: Quote[] };
-  const quotes: Quote[] = res.data ?? [];
+  const res = await listRecent<Quote[]>(20);
+  const quotes = res.data ?? [];
 
   return (
     <main className="max-w-2xl mx-auto p-6">
