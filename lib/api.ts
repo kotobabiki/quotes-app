@@ -1,4 +1,4 @@
-// lib/api.ts（差分は j の型と type guard）
+// lib/api.ts
 const originForServer =
   process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
@@ -7,35 +7,49 @@ const originForServer =
 const BASE =
   typeof window === "undefined" ? `${originForServer}/api/quotes` : "/api/quotes";
 
+// ---------- type guards ----------
+function isRecord(x: unknown): x is Record<string, unknown> {
+  return typeof x === "object" && x !== null;
+}
 function isOkFalse(x: unknown): x is { ok: false; error?: string } {
-  if (typeof x !== "object" || x === null) return false;
-  const rec = x as Record<string, unknown>;
-  return rec.ok === false;
+  return isRecord(x) && x.ok === false;
 }
 
-// lib/api.ts
-const J = async <T = unknown>(p: Promise<Response>): Promise<T> => {
-    const r = await p;
-    const t = await r.text();
-    let j: unknown;
-    try { j = JSON.parse(t); } catch {}
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${t}`);
-    if (isOkFalse(j)) throw new Error((j as any).error || "GAS returned ok:false");
-    return j as T;
-  };
-  
+// ---------- fetch wrapper ----------
+const J = async <T>(p: Promise<Response>): Promise<T> => {
+  const r = await p;
+  const t = await r.text();
 
-export const listRecent = (limit = 50) =>
-  J(fetch(`${BASE}?action=list_recent&limit=${limit}`, { cache: "no-store" }));
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(t);
+  } catch {
+    parsed = undefined;
+  }
 
-export const listTop = (limit = 50) =>
-  J(fetch(`${BASE}?action=list_top&limit=${limit}`, { cache: "no-store" }));
+  if (!r.ok) throw new Error(`HTTP ${r.status}: ${t}`);
+  if (isOkFalse(parsed)) throw new Error(parsed.error || "GAS returned ok:false");
 
-export const listByUser = (user_name: string) =>
-  J(
-    fetch(`${BASE}?action=list_by_user&user=${encodeURIComponent(user_name)}`, {
-      cache: "no-store",
-    }),
+  return parsed as T;
+};
+
+// ---------- APIs ----------
+export const listRecent = <T = unknown[]>(limit = 50) =>
+  J<{ ok: boolean; data: T }>(
+    fetch(`${BASE}?action=list_recent&limit=${limit}`, { cache: "no-store" })
+  );
+
+export const listTop = <T = unknown[]>(limit = 50) =>
+  J<{ ok: boolean; data: T }>(
+    fetch(`${BASE}?action=list_top&limit=${limit}`, { cache: "no-store" })
+  );
+
+export const listByUser = <T = unknown[]>(user_name: string) =>
+  J<{ ok: boolean; data: T }>(
+    fetch(
+      `${BASE}?action=list_by_user&user=${encodeURIComponent(user_name)}`,
+      { cache: "no-store" }
+    )
   );
 
 export const createQuote = (input: {
@@ -45,19 +59,19 @@ export const createQuote = (input: {
   url?: string;
   user_name: string;
 }) =>
-  J(
+  J<{ ok: boolean; id: string }>(
     fetch(BASE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "create", ...input }),
-    }),
+    })
   );
 
 export const likeQuote = (id: string) =>
-  J(
+  J<{ ok: boolean }>(
     fetch(BASE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "like", id }),
-    }),
+    })
   );
