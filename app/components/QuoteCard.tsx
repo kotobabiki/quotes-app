@@ -27,7 +27,7 @@ export default function QuoteCard(p: Props) {
       setLikes((v) => v + 1);
       setLiked(true);
       localStorage.setItem(`liked:${p.id}`, "1");
-    } catch (e) {
+    } catch {
       alert("いいねに失敗しました");
     }
   };

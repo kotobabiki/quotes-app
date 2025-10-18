@@ -16,10 +16,11 @@ export default function RecentPage() {
 
   async function load() {
     setLoading(true);
-    const res = await listRecent(50);
+    const res = (await listRecent(50)) as { ok: boolean; data: Quote[] };
     setItems(res.data as Quote[]);
     setLoading(false);
   }
+  
   useEffect(() => { load(); }, []);
 
   function likedKey(id:string){ return `liked:${id}`; }
