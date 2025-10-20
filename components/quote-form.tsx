@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";        // ← ここで useEffect を import
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import { Sparkles } from "lucide-react";
+
 
 type FormData = {
   text: string;
@@ -66,7 +67,7 @@ export default function QuoteForm() {
   };
 
   // 起動時に user_name を復元
-  React.useEffect(() => {
+  useEffect(() => {                                    // ← React.useEffect -> useEffect
     const u = localStorage.getItem("user_name") || "";
     if (u) setFormData((p) => ({ ...p, user_name: u }));
   }, []);
